@@ -18,7 +18,7 @@ from telegram.ext import (
 # ====== CONFIG ======
 TOKEN = "8298425629:AAGJzSFg_SHT_HjEPA1OTzJnXHRdPw51T10"
 CHANNEL_USERNAME = "@ethereumamoperator"  # username канала с @ или числовой ID
-MERCHANT_USDT_ADDRESS = "0xYourUSDT_ERC20_Address_Here"  # <-- замени на свой
+MERCHANT_USDT_ADDRESS = "0xYourUSDT_ERC20_Address_Here"  # <-- замени на свой (USDT-ERC20)
 
 # Логирование
 logging.basicConfig(level=logging.INFO)
@@ -47,19 +47,25 @@ language_map = {
 
 texts = {
     "Русский": {
-        "brand": "Exchange_Bot на платформе Ethereum",
+        # === Брендинг ===
+        "brand": "💎 Ethereum платформа",
+        # Стартовый баннер (до выбора языка) — мульти-язычный блок с курсами
         "start_banner": (
-            "🌐 {brand}\n\n"
+            "💎 Ethereum платформа\n\n"
             "📊 Текущие курсы / Ընթացիկ փոխարժեքներ / Current rates:\n"
-            "₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
+            "🟧 BTC: {btc:.2f} USDT | 💎 ETH: {eth:.2f} USDT\n"
             "💵 USDT-ERC20 only / միայն USDT-ERC20 / только USDT-ERC20\n"
             "⚠️ Fee/Միջնորդավճար/Комиссия: 3% (buy +, sell −)\n\n"
             "Выберите язык / Խնդրում ենք ընտրել լեզուն / Please select a language:"
         ),
-        "welcome": "🌐 Добро пожаловать! Вы используете {brand}.",
-        "rates": "📊 Курс: ₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
-                 "💵 Выплаты/оплата: только USDT-ERC20\n"
-                 "⚠️ Комиссия: 3% — при покупке добавляется, при продаже удерживается.",
+        # === Блок курсов после выбора языка (S4-C) ===
+        "rates": (
+            "📊 Курсы криптовалют:\n"
+            "🟧 BTC: {btc:.2f} USDT\n"
+            "💎 ETH: {eth:.2f} USDT\n\n"
+            "💵 Сеть: USDT-ERC20\n"
+            "⚠️ Комиссия: 3% (покупка +, продажа −)"
+        ),
         "info": "Выберите действие:",
         "buttons": [["💰 Купить BTC/ETH", "💸 Продать BTC/ETH"], ["⬅️ Назад"]],
         "pick_asset": "Выберите актив: BTC или ETH.",
@@ -68,53 +74,85 @@ texts = {
         "merchant_addr_title": "💳 Адрес для оплаты (USDT-ERC20):",
         "copy_addr": "📋 Скопировать адрес",
         "enter_wallet": "Укажите адрес вашего 💵 USDT-ERC20 для выплаты (начинается с 0x…):",
-        "bad_wallet": "Неверный адрес. Должен начинаться с 0x, быть длиной 42 и иметь корректный checksum (EIP-55).",
+        "bad_wallet": "Неверный адрес. Должен начинаться с 0x, быть длиной 42 и содержать допустимые символы (hex).",
         "send_check": "Теперь отправьте только фото/скриншот чека. Текстовые сообщения не принимаются.",
         "only_photo": "На этом шаге принимается только фото/скриншот чека. Пожалуйста, пришлите изображение.",
-        "after_check_wait": "✅ Чек получен. Ваша заявка ждёт подтверждения оператора.",
-        "calc_buy": "Курс {asset}: {price:.2f} USDT\n"
-                    "Сумма: {base:.2f} USDT\nКомиссия (3%): {fee:.2f} USDT\n"
-                    "К оплате (USDT-ERC20): {total:.2f} USDT.\n\n➡️ Отправьте: {total:.2f} USDT-ERC20",
-        "calc_sell": "Курс {asset}: {price:.2f} USDT\n"
-                     "Сумма: {base:.2f} USDT\nКомиссия (3%): {fee:.2f} USDT\n"
-                     "К получению (USDT-ERC20): {total:.2f} USDT.\n\n➡️ Вы получите: {total:.2f} USDT-ERC20",
-        "approved_user": "✅ Ваша заявка одобрена.\nАктив: {asset}\nКоличество: {asset_amount:.8f} {asset}\n"
-                         "Итог в USDT-ERC20: {usdt_total:.2f}\nОператор отправил то, что вы запрашивали.",
-        "auto_reject_user": "❌ Ваша заявка отклонена.\nПричина: чек не видно / дата и время не сегодняшние / чек неверный.\n"
-                            "Пожалуйста, отправьте корректный чек (чёткое фото с актуальными датой/временем).",
-        "channel_caption_buy": ("🟢 Покупка {asset}\n"
-                                "Пользователь: @{username}\n"
-                                "Количество: {asset_amount:.8f} {asset}\n\n"
-                                "Сумма: {base:.2f} USDT\nКомиссия (3%): {fee:.2f} USDT\n"
-                                "Итого к оплате: {total:.2f} USDT\n\n"
-                                "Адрес USDT-ERC20: {wallet}\n"
-                                "{retry}Статус: Ожидает подтверждения"),
-        "channel_caption_sell": ("🔴 Продажа {asset}\n"
-                                 "Пользователь: @{username}\n"
-                                 "Количество: {asset_amount:.8f} {asset}\n\n"
-                                 "Сумма: {base:.2f} USDT\nКомиссия (3%): {fee:.2f} USDT\n"
-                                 "К выплате: {total:.2f} USDT\n\n"
-                                 "Адрес USDT-ERC20 (клиента): {wallet}\n"
-                                 "{retry}Статус: Ожидает подтверждения"),
+        "after_check_wait": "✅ Чек получен. Ваша заявка передана оператору и ожидает подтверждения.",
+        # === Расчёты для пользователя (S4 + O4) ===
+        "calc_buy": (
+            "✨ Желаемый объём: {asset_amount:.8f} {asset}\n"
+            "💳 Стоимость по курсу: {base:.2f} USDT\n"
+            "Курс: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Комиссия сервиса (3%): {fee:.2f} USDT\n\n"
+            "📍 Сумма для отправки: {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Отправьте точную сумму, чтобы заявка была обработана без задержки."
+        ),
+        "calc_sell": (
+            "✨ Объём к продаже: {asset_amount:.8f} {asset}\n"
+            "💳 Стоимость по курсу: {base:.2f} USDT\n"
+            "Курс: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Комиссия сервиса (3%): {fee:.2f} USDT\n\n"
+            "📍 К получению: {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Проверьте точность суммы — это ускорит обработку."
+        ),
+        # === Уведомления пользователю ===
+        "approved_user": (
+            "✅ Ваша заявка одобрена.\n"
+            "Актив: {asset}\n"
+            "Количество: {asset_amount:.8f} {asset}\n"
+            "Итог в USDT-ERC20: {usdt_total:.2f}\n"
+            "Оператор отправил то, что вы запрашивали."
+        ),
+        "auto_reject_user": (
+            "❌ Ваша заявка отклонена.\n"
+            "Причина: чек не видно / дата и время не сегодняшние / чек неверный.\n"
+            "Пожалуйста, отправьте корректный чек (чёткое фото с актуальными датой/временем)."
+        ),
+        # === Сообщение в канал оператору (O4) ===
+        "channel_caption_buy": (
+            "🟣 Покупка {asset}\n"
+            "Пользователь: @{username}\n\n"
+            "✨ Объём: {asset_amount:.8f} {asset}\n"
+            "💳 Стоимость по курсу: {base:.2f} USDT\n"
+            "Курс: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Комиссия (3%): {fee:.2f} USDT\n\n"
+            "📍 К оплате: {total:.2f} USDT-ERC20\n"
+            "USDT-ERC20 адрес для оплаты: {wallet}\n\n"
+            "{retry}Статус: Ожидает подтверждения"
+        ),
+        "channel_caption_sell": (
+            "🔴 Продажа {asset}\n"
+            "Пользователь: @{username}\n\n"
+            "✨ Объём: {asset_amount:.8f} {asset}\n"
+            "💳 Стоимость по курсу: {base:.2f} USDT\n"
+            "Курс: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Комиссия (3%): {fee:.2f} USDT\n\n"
+            "📍 К выплате: {total:.2f} USDT-ERC20\n"
+            "USDT-ERC20 адрес клиента: {wallet}\n\n"
+            "{retry}Статус: Ожидает подтверждения"
+        ),
         "retry_label": "⚠️ Повторная отправка чека\n",
         "lang_prompt": "Выберите язык / Խնդրում ենք ընտրել լեզուն / Please select a language:",
         "copied_reply": "Адрес для оплаты: {addr}"
     },
     "Հայերեն": {
-        "brand": "Exchange_Bot՝ Ethereum հարթակում",
+        "brand": "💎 Ethereum հարթակ",
         "start_banner": (
-            "🌐 {brand}\n\n"
+            "💎 Ethereum հարթակ\n\n"
             "📊 Ընթացիկ փոխարժեքներ / Current rates / Текущие курсы:\n"
-            "₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
+            "🟧 BTC: {btc:.2f} USDT | 💎 ETH: {eth:.2f} USDT\n"
             "💵 միայն USDT-ERC20 / USDT-ERC20 only / только USDT-ERC20\n"
             "⚠️ Միջնորդավճար 3% (գնում՝ +, վաճառք՝ −)\n\n"
             "Խնդրում ենք ընտրել լեզուն / Выберите язык / Please select a language:"
         ),
-        "welcome": "🌐 Բարի գալուստ։ Դուք օգտագործում եք {brand}։",
-        "rates": "📊 Փոխարժեք՝ ₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
-                 "💵 Վճարումները՝ USDT-ERC20\n"
-                 "⚠️ 3% միջնորդավճար՝ գնման դեպքում ավելացվում է, վաճառքի դեպքում՝ պահվում է։",
-        "info": "Ընտրեք գործողությունը՝",
+        "rates": (
+            "📊 Արտարժութային ցուցանիշներ:\n"
+            "🟧 BTC: {btc:.2f} USDT\n"
+            "💎 ETH: {eth:.2f} USDT\n\n"
+            "💵 Ցանցը՝ USDT-ERC20\n"
+            "⚠️ Միջնորդավճար՝ 3% (գնում՝ +, վաճառք՝ −)"
+        ),
+        "info": "Ընտրեք գործողությունը.",
         "buttons": [["💰 Գնել BTC/ETH", "💸 Վաճառել BTC/ETH"], ["⬅️ Վերադառնալ"]],
         "pick_asset": "Ընտրեք ակտիվ՝ BTC կամ ETH։",
         "enter_amount_buy": "Մուտքագրեք {asset}-ի քանակը, որը ցանկանում եք գնել (օր. 0.01)։",
@@ -122,88 +160,143 @@ texts = {
         "merchant_addr_title": "💳 Վճարման հասցե (USDT-ERC20)՝",
         "copy_addr": "📋 Պատճենել հասցեն",
         "enter_wallet": "Նշեք ձեր 💵 USDT-ERC20 հասցեն (սկսվում է 0x…)՝ վճարման համար:",
-        "bad_wallet": "Սխալ հասցե․ պետք է սկսվի 0x-ով, լինի 42 նիշ և ունենա ճիշտ EIP-55 checksum։",
-        "send_check": "Այժմ ուղարկեք միայն վճարման լուսանկար/սքրինշոթ։ Տեքստերը չեն ընդունվում։",
+        "bad_wallet": "Սխալ հասցե․ պետք է սկսվի 0x-ով, լինի 42 նիշ և պարունակի միայն hex նիշեր:",
+        "send_check": "Խնդրում ենք ուղարկել միայն վճարի լուսանկար/սքրինշոթ։ Տեքստերը չեն ընդունվում։",
         "only_photo": "Այս փուլում ընդունվում է միայն լուսանկար/սքրինշոթ։",
-        "after_check_wait": "✅ Ստուգումը ստացվեց։ Ձեր հայտը սպասում է օպերատորի հաստատմանը։",
-        "calc_buy": "{asset}-ի գինը՝ {price:.2f} USDT\n"
-                    "Գումար՝ {base:.2f} USDT\nՄիջնորդավճար (3%)՝ {fee:.2f} USDT\n"
-                    "Վճարում՝ (USDT-ERC20)՝ {total:.2f} USDT։\n\n➡️ Ուղարկեք՝ {total:.2f} USDT-ERC20",
-        "calc_sell": "{asset}-ի գինը՝ {price:.2f} USDT\n"
-                     "Գումար՝ {base:.2f} USDT\nՄիջնորդավճար (3%)՝ {fee:.2f} USDT\n"
-                     "Ստանալու եք՝ (USDT-ERC20)՝ {total:.2f} USDT։\n\n➡️ Կստանաք՝ {total:.2f} USDT-ERC20",
-        "approved_user": "✅ Ձեր հայտը հաստատվել է։\nԱկտիվ՝ {asset}\nՔանակ՝ {asset_amount:.8f} {asset}\n"
-                         "USDT-ERC20՝ {usdt_total:.2f}\nՕպերատորը ուղարկել է Ձեր պահանջածը։",
-        "auto_reject_user": "❌ Ձեր հայտը մերժվել է։\nՊատճառ՝ չեկը չի երևում / ամսաթիվը և ժամը այսօրը չեն / չեկը սխալ է։\n"
-                            "Խնդրում ենք ուղարկել հստակ լուսանկար՝ արդի ամսաթվով/ժամով։",
-        "channel_caption_buy": ("🟢 Գնում {asset}\n"
-                                "Օգտատեր՝ @{username}\n"
-                                "Քանակ՝ {asset_amount:.8f} {asset}\n\n"
-                                "Գումար՝ {base:.2f} USDT\nՄիջնորդավճար (3%)՝ {fee:.2f} USDT\n"
-                                "Վճարում՝ {total:.2f} USDT\n\n"
-                                "USDT-ERC20 հասցե՝ {wallet}\n"
-                                "{retry}Կարգավիճակ՝ Սպասում է հաստատման"),
-        "channel_caption_sell": ("🔴 Վաճառք {asset}\n"
-                                 "Օգտատեր՝ @{username}\n"
-                                 "Քանակ՝ {asset_amount:.8f} {asset}\n\n"
-                                 "Գումար՝ {base:.2f} USDT\nՄիջնորդավճար (3%)՝ {fee:.2f} USDT\n"
-                                 "Ստանալու եք՝ {total:.2f} USDT\n\n"
-                                 "USDT-ERC20 հասցե (հաճախորդի)՝ {wallet}\n"
-                                 "{retry}Կարգավիճակ՝ Սպասում է հաստատման"),
+        "after_check_wait": "✅ Ստուգումն ընդունվեց․ ձեր հայտը փոխանցվել է օպերատորին և սպասում է հաստատման։",
+        "calc_buy": (
+            "✨ Ցանկալի քանակ՝ {asset_amount:.8f} {asset}\n"
+            "💳 Արժեք՝ {base:.2f} USDT\n"
+            "Փոխարժեք՝ {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Սերվիսի միջնորդավճար (3%)՝ {fee:.2f} USDT\n\n"
+            "📍 Վճարման գումար՝ {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Խնդրում ենք ուղարկել ճշգրիտ գումարը՝ ուշացումներից խուսափելու համար։"
+        ),
+        "calc_sell": (
+            "✨ Վաճառքի քանակ՝ {asset_amount:.8f} {asset}\n"
+            "💳 Արժեք՝ {base:.2f} USDT\n"
+            "Փոխարժեք՝ {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Միջնորդավճար (3%)՝ {fee:.2f} USDT\n\n"
+            "📍 Ստանալու եք՝ {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Խնդրում ենք ստուգել ճշգրտությունը՝ արագ մշակման համար։"
+        ),
+        "approved_user": (
+            "✅ Ձեր հայտը հաստատվել է։\n"
+            "Ակտիվ՝ {asset}\n"
+            "Քանակ՝ {asset_amount:.8f} {asset}\n"
+            "USDT-ERC20՝ {usdt_total:.2f}\n"
+            "Օպերատորը ուղարկել է Ձեր պահանջածը։"
+        ),
+        "auto_reject_user": (
+            "❌ Ձեր հայտը մերժվել է։\n"
+            "Պատճառ՝ չեկը չի երևում / ամսաթիվը և ժամը ընթացիկը չեն / չեկը սխալ է։\n"
+            "Խնդրում ենք ուղարկել հստակ լուսանկար՝ ընթացիկ ամսաթվով/ժամով։"
+        ),
+        "channel_caption_buy": (
+            "🟣 Գնում {asset}\n"
+            "Օգտատեր՝ @{username}\n\n"
+            "✨ Քանակ՝ {asset_amount:.8f} {asset}\n"
+            "💳 Արժեք՝ {base:.2f} USDT\n"
+            "Փոխարժեք՝ {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Միջնորդավճար (3%)՝ {fee:.2f} USDT\n\n"
+            "📍 Վճարում՝ {total:.2f} USDT-ERC20\n"
+            "USDT-ERC20 հասցե՝ {wallet}\n\n"
+            "{retry}Կարգավիճակ՝ Սպասում է հաստատման"
+        ),
+        "channel_caption_sell": (
+            "🔴 Վաճառք {asset}\n"
+            "Օգտատեր՝ @{username}\n\n"
+            "✨ Քանակ՝ {asset_amount:.8f} {asset}\n"
+            "💳 Արժեք՝ {base:.2f} USDT\n"
+            "Փոխարժեք՝ {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Միջնորդավճար (3%)՝ {fee:.2f} USDT\n\n"
+            "📍 Ստանալու եք՝ {total:.2f} USDT-ERC20\n"
+            "Հաճախորդի USDT-ERC20 հասցե՝ {wallet}\n\n"
+            "{retry}Կարգավիճակ՝ Սպասում է հաստատման"
+        ),
         "retry_label": "⚠️ Կրկնակի ստուգում\n",
         "lang_prompt": "Խնդրում ենք ընտրել լեզուն / Выберите язык / Please select a language:",
         "copied_reply": "Վճարման հասցե՝ {addr}"
     },
     "English": {
-        "brand": "Exchange_Bot on Ethereum Platform",
+        "brand": "💎 Ethereum Platform",
         "start_banner": (
-            "🌐 {brand}\n\n"
+            "💎 Ethereum Platform\n\n"
             "📊 Current rates / Ընթացիկ փոխարժեքներ / Текущие курсы:\n"
-            "₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
+            "🟧 BTC: {btc:.2f} USDT | 💎 ETH: {eth:.2f} USDT\n"
             "💵 USDT-ERC20 only / միայն USDT-ERC20 / только USDT-ERC20\n"
             "⚠️ Fee/Միջնորդավճար/Комиссия: 3% (buy +, sell −)\n\n"
             "Please select a language / Ընտրեք լեզուն / Выберите язык:"
         ),
-        "welcome": "🌐 Welcome! You are using {brand}.",
-        "rates": "📊 Rates: ₿ BTC: {btc:.2f} USDT | ✨ ETH: {eth:.2f} USDT\n"
-                 "💵 Settlement: USDT-ERC20 only\n"
-                 "⚠️ Fee: 3% — added on buy, withheld on sell.",
+        "rates": (
+            "📊 Live Rates:\n"
+            "🟧 BTC: {btc:.2f} USDT\n"
+            "💎 ETH: {eth:.2f} USDT\n\n"
+            "💵 Network: USDT-ERC20\n"
+            "⚠️ Fee: 3% (buy +, sell −)"
+        ),
         "info": "Choose an action:",
         "buttons": [["💰 Buy BTC/ETH", "💸 Sell BTC/ETH"], ["⬅️ Back"]],
         "pick_asset": "Choose asset: BTC or ETH.",
-        "enter_amount_buy": "Enter the amount of {asset} you want to buy (e.g., 0.01):",
-        "enter_amount_sell": "Enter the amount of {asset} you want to sell (e.g., 0.01):",
+        "enter_amount_buy": "Enter how much {asset} you want to buy (e.g., 0.01):",
+        "enter_amount_sell": "Enter how much {asset} you want to sell (e.g., 0.01):",
         "merchant_addr_title": "💳 Payment address (USDT-ERC20):",
         "copy_addr": "📋 Copy address",
         "enter_wallet": "Provide your 💵 USDT-ERC20 address for payout (starts with 0x…):",
-        "bad_wallet": "Invalid address. Must start with 0x, be 42 chars, and have correct EIP-55 checksum.",
-        "send_check": "Now send photo/screenshot of the receipt only. Text messages are not accepted.",
-        "only_photo": "At this step, only photo/screenshot is accepted. Please attach an image.",
-        "after_check_wait": "✅ Receipt received. Your request is pending operator approval.",
-        "calc_buy": "{asset} price: {price:.2f} USDT\n"
-                    "Subtotal: {base:.2f} USDT\nFee (3%): {fee:.2f} USDT\n"
-                    "To pay (USDT-ERC20): {total:.2f} USDT.\n\n➡️ Send: {total:.2f} USDT-ERC20",
-        "calc_sell": "{asset} price: {price:.2f} USDT\n"
-                     "Subtotal: {base:.2f} USDT\nFee (3%): {fee:.2f} USDT\n"
-                     "You will receive (USDT-ERC20): {total:.2f} USDT.\n\n➡️ You will receive: {total:.2f} USDT-ERC20",
-        "approved_user": "✅ Your request has been approved.\nAsset: {asset}\nAmount: {asset_amount:.8f} {asset}\n"
-                         "USDT-ERC20 total: {usdt_total:.2f}\nThe operator has sent what you requested.",
-        "auto_reject_user": "❌ Your request was rejected.\nReason: receipt not visible / not today's date & time / invalid receipt.\n"
-                            "Please send a correct, clear receipt with current date/time.",
-        "channel_caption_buy": ("🟢 Buy {asset}\n"
-                                "User: @{username}\n"
-                                "Amount: {asset_amount:.8f} {asset}\n\n"
-                                "Subtotal: {base:.2f} USDT\nFee (3%): {fee:.2f} USDT\n"
-                                "Total to pay: {total:.2f} USDT\n\n"
-                                "USDT-ERC20 address: {wallet}\n"
-                                "{retry}Status: Waiting for approval"),
-        "channel_caption_sell": ("🔴 Sell {asset}\n"
-                                 "User: @{username}\n"
-                                 "Amount: {asset_amount:.8f} {asset}\n\n"
-                                 "Subtotal: {base:.2f} USDT\nFee (3%): {fee:.2f} USDT\n"
-                                 "To receive: {total:.2f} USDT\n\n"
-                                 "Client USDT-ERC20 address: {wallet}\n"
-                                 "{retry}Status: Waiting for approval"),
+        "bad_wallet": "Invalid address. Must start with 0x, be 42 chars, and contain only hex symbols.",
+        "send_check": "Now send a photo/screenshot of the receipt only. Text messages are not accepted.",
+        "only_photo": "At this step, only a photo/screenshot is accepted. Please attach an image.",
+        "after_check_wait": "✅ Receipt received. Your request has been forwarded to an operator for approval.",
+        "calc_buy": (
+            "✨ Desired amount: {asset_amount:.8f} {asset}\n"
+            "💳 Price at rate: {base:.2f} USDT\n"
+            "Rate: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Service fee (3%): {fee:.2f} USDT\n\n"
+            "📍 Amount to send: {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Send the exact amount to avoid delays."
+        ),
+        "calc_sell": (
+            "✨ Amount to sell: {asset_amount:.8f} {asset}\n"
+            "💳 Price at rate: {base:.2f} USDT\n"
+            "Rate: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Service fee (3%): {fee:.2f} USDT\n\n"
+            "📍 You will receive: {total:.2f} USDT-ERC20\n\n"
+            "⚠️ Ensure accuracy to speed up processing."
+        ),
+        "approved_user": (
+            "✅ Your request has been approved.\n"
+            "Asset: {asset}\n"
+            "Amount: {asset_amount:.8f} {asset}\n"
+            "USDT-ERC20 total: {usdt_total:.2f}\n"
+            "The operator has sent what you requested."
+        ),
+        "auto_reject_user": (
+            "❌ Your request was rejected.\n"
+            "Reason: receipt not visible / not today's date & time / invalid receipt.\n"
+            "Please send a correct, clear receipt with current date/time."
+        ),
+        "channel_caption_buy": (
+            "🟣 Buy {asset}\n"
+            "User: @{username}\n\n"
+            "✨ Amount: {asset_amount:.8f} {asset}\n"
+            "💳 Subtotal: {base:.2f} USDT\n"
+            "Rate: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Fee (3%): {fee:.2f} USDT\n\n"
+            "📍 Total to pay: {total:.2f} USDT-ERC20\n"
+            "USDT-ERC20 payment address: {wallet}\n\n"
+            "{retry}Status: Waiting for approval"
+        ),
+        "channel_caption_sell": (
+            "🔴 Sell {asset}\n"
+            "User: @{username}\n\n"
+            "✨ Amount: {asset_amount:.8f} {asset}\n"
+            "💳 Subtotal: {base:.2f} USDT\n"
+            "Rate: {price:.2f} USDT (Binance, {price_time})\n"
+            "💼 Fee (3%): {fee:.2f} USDT\n\n"
+            "📍 To receive: {total:.2f} USDT-ERC20\n"
+            "Client USDT-ERC20 address: {wallet}\n\n"
+            "{retry}Status: Waiting for approval"
+        ),
         "retry_label": "⚠️ Retry receipt\n",
         "lang_prompt": "Please select a language / Ընտրեք լեզուն / Выберите язык:",
         "copied_reply": "Payment address: {addr}"
@@ -320,25 +413,15 @@ async def fetch_prices() -> dict:
         prices = PRICES_USD.copy()
     return prices
 
-# ====== ADDRESS VALIDATION (EIP-55 checksum) ======
+# ====== ADDRESS VALIDATION (soft, no eth-utils required) ======
 def _basic_eth_format(addr: str) -> bool:
     return isinstance(addr, str) and addr.startswith("0x") and len(addr) == 42 and all(c in "0123456789abcdefABCDEF" for c in addr[2:])
 
 def is_checksum_address(addr: str) -> bool:
     """
-    True, если адрес валиден и checksum корректный (EIP-55).
-    Использует eth_utils если установлен; иначе — базовая проверка формата.
+    Мягкая проверка: базовый формат + допускаем без eth_utils.
     """
-    if not _basic_eth_format(addr):
-        return False
-    try:
-        from eth_utils import is_checksum_address as _is, to_checksum_address as _to
-        if any(c.isupper() for c in addr[2:]) and any(c.islower() for c in addr[2:]):
-            return _is(addr)
-        chk = _to(addr)
-        return chk == addr or _is(chk)
-    except Exception:
-        return True  # мягкий допуск, если eth_utils нет
+    return _basic_eth_format(addr)
 
 # ====== HELPERS ======
 def build_kb(lang: str) -> ReplyKeyboardMarkup:
@@ -355,7 +438,6 @@ def parse_float(s: str):
 
 async def send_language_prompt_only(user_id_or_update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [["🇷🇺 Русский"], ["🇦🇲 Հայերեն"], ["🇬🇧 English"]]
-    # мультиязычная подсказка
     prompt = texts["Русский"]["lang_prompt"]
     if isinstance(user_id_or_update, Update):
         await user_id_or_update.effective_chat.send_message(
@@ -374,7 +456,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prices = await fetch_prices()
     btc = prices["BTC"]; eth = prices["ETH"]
 
-    # Мультиязычный общий баннер с брендом RU/AM/EN — покажем RU-строку (с мультистрокой внутри)
     banner = texts["Русский"]["start_banner"].format(
         brand=texts["Русский"]["brand"], btc=btc, eth=eth
     )
@@ -384,7 +465,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     )
     context.user_data["start_msg_id"] = msg.message_id
-    context.user_data["start_banner_text_idiom"] = "RU"
     return LANGUAGE
 
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -404,9 +484,8 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception:
         pass
 
-    # Приветствие и меню на выбранном языке
+    # Показываем только курсы (S4-C) + меню. Приветствие убрано.
     prices = await fetch_prices()
-    await update.message.reply_text(texts[lang]["welcome"].format(brand=texts[lang]["brand"]))
     await update.message.reply_text(texts[lang]["rates"].format(btc=prices["BTC"], eth=prices["ETH"]))
     await update.message.reply_text(texts[lang]["info"], reply_markup=build_kb(lang))
     return ACTION
@@ -462,47 +541,67 @@ async def enter_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Реальный курс на момент расчёта
     prices = await fetch_prices()
     price = prices[asset]
+    price_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+
     base = amount * price
     fee = base * 0.03
+
     if context.user_data.get("flow") == "buy":
         total = base + fee
-        calc_text = texts[lang]["calc_buy"].format(asset=asset, price=price, base=base, fee=fee, total=total)
-        # Показываем твой адрес и кнопку "Скопировать"
+        # Сохраняем расчёт (для канала/коллбэков)
+        context.user_data["calc"] = {
+            "base": base, "fee": fee, "total": total, "price": price,
+            "price_time": price_time, "asset_amount": amount
+        }
+
+        # Текст пользователю (S4 + O4)
+        calc_text = texts[lang]["calc_buy"].format(
+            asset=asset, asset_amount=amount, price=price, base=base,
+            fee=fee, total=total, price_time=price_time
+        )
+
+        # Кнопка «Скопировать адрес»
         kb = InlineKeyboardMarkup([
             [InlineKeyboardButton(texts[lang]["copy_addr"], callback_data="copy_addr")]
         ])
         await update.message.reply_text(calc_text)
-        await update.message.reply_text(f"{texts[lang]['merchant_addr_title']}\n`{MERCHANT_USDT_ADDRESS}`", reply_markup=kb, parse_mode="Markdown")
+        await update.message.reply_text(
+            f"{texts[lang]['merchant_addr_title']}\n`{MERCHANT_USDT_ADDRESS}`",
+            reply_markup=kb, parse_mode="Markdown"
+        )
         await update.message.reply_text(texts[lang]["send_check"])
         # В BUY не спрашиваем адрес пользователя — сразу чек
-        context.user_data["wallet"] = MERCHANT_USDT_ADDRESS  # для логов в канал отразим наш адрес
-        context.user_data["calc"] = {"base": base, "fee": fee, "total": total, "price": price}
+        context.user_data["wallet"] = MERCHANT_USDT_ADDRESS  # в канал отразим наш адрес
         return AWAITING_CHECK
+
     else:
         total = base - fee
-        calc_text = texts[lang]["calc_sell"].format(asset=asset, price=price, base=base, fee=fee, total=total)
-        context.user_data["calc"] = {"base": base, "fee": fee, "total": total, "price": price}
+        context.user_data["calc"] = {
+            "base": base, "fee": fee, "total": total, "price": price,
+            "price_time": price_time, "asset_amount": amount
+        }
+        calc_text = texts[lang]["calc_sell"].format(
+            asset=asset, asset_amount=amount, price=price, base=base,
+            fee=fee, total=total, price_time=price_time
+        )
         await update.message.reply_text(calc_text)
         await update.message.reply_text(texts[lang]["enter_wallet"])
         return ENTER_WALLET
 
+# (soft) формат и checksum (без eth-utils)
 def _basic_eth_format(addr: str) -> bool:
     return isinstance(addr, str) and addr.startswith("0x") and len(addr) == 42
 
 def _strong_checksum(addr: str) -> bool:
-    # строгое требование checksum через eth_utils при наличии
-    try:
-        from eth_utils import is_checksum_address
-        return is_checksum_address(addr)
-    except Exception:
-        return True  # если нет eth_utils — не блокируем
+    # мягко пропускаем без eth-utils
+    return True
 
 async def enter_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     wallet = (update.message.text or "").strip()
     if not _basic_eth_format(wallet) or not _strong_checksum(wallet):
         await update.message.reply_text(texts[lang]["bad_wallet"])
-        await update.message.reply_text("ℹ️ Для точной проверки установите пакет: pip install eth-utils")
+        await update.message.reply_text("ℹ️ Для строгой проверки установите пакет: pip install eth-utils")
         return ENTER_WALLET
 
     context.user_data["wallet"] = wallet
@@ -527,6 +626,8 @@ async def receive_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     base = u.get("calc", {}).get("base", 0.0)
     fee = u.get("calc", {}).get("fee", 0.0)
     total = u.get("calc", {}).get("total", 0.0)
+    price = u.get("calc", {}).get("price", 0.0)
+    price_time = u.get("calc", {}).get("price_time", "")
     username = update.effective_user.username or update.effective_user.first_name
     wallet = u.get("wallet")  # BUY: твой адрес; SELL: адрес клиента
 
@@ -540,12 +641,14 @@ async def receive_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if flow == "buy":
         caption = texts[lang]["channel_caption_buy"].format(
             asset=asset, username=username, asset_amount=asset_amount,
-            base=base, fee=fee, total=total, wallet=wallet, retry=retry_note
+            base=base, fee=fee, total=total, wallet=wallet, retry=retry_note,
+            price=price, price_time=price_time
         )
     else:
         caption = texts[lang]["channel_caption_sell"].format(
             asset=asset, username=username, asset_amount=asset_amount,
-            base=base, fee=fee, total=total, wallet=wallet, retry=retry_note
+            base=base, fee=fee, total=total, wallet=wallet, retry=retry_note,
+            price=price, price_time=price_time
         )
 
     sent = await context.bot.send_photo(
@@ -591,7 +694,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Кнопка «📋 Скопировать адрес»
     if data == "copy_addr":
-        # Отправляем тот же адрес как ответ (копировать — уже на стороне клиента)
         lang = get_lang(context)
         await query.answer(text="Адрес отправлен сообщением", show_alert=False)
         await query.message.reply_text(texts[lang]["copied_reply"].format(addr=MERCHANT_USDT_ADDRESS))
@@ -644,7 +746,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ====== MAIN ======
 def main():
-    # Инициализация логирования
+    # Инициализация логирования/хранилищ
     if ENABLE_SQLITE:
         conn = sqlite3.connect("orders.db")
         conn.close()
@@ -678,4 +780,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
